@@ -54,9 +54,9 @@ shares_label.grid(row=0, column=1, sticky='snew')
 last_action_label = tk.Label(master=root, font=('Consolas', 24), borderwidth=1, relief="solid", text='test123')
 last_action_label.grid(row=1, column=0, columnspan=2, sticky='snew')
 
-total_value_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
+total_value_label = tk.Label(master=root, font=('Consolas', 32), borderwidth=1, relief="solid")
 total_value_label.grid(row=3, column=0, sticky='snew') # 'snew' == 'ew' in this context
-profit_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
+profit_label = tk.Label(master=root, font=('Consolas', 32), borderwidth=1, relief="solid")
 profit_label.grid(row=3, column=1, sticky='snew')
 
 # Uniform groups: ensure all columns in same group have uniform spacing
@@ -110,15 +110,16 @@ def animate(t):
     # Update UI
     cash_label['text'] = f'Cash: ${cash:.2f}'
     shares_label['text'] = f'{shares} Shares {ticker}'
-    total_value_label['text'] = f'Total Liquid Value: ${cash+shares*price:.2f}'
-    profit = cash+shares*price-initial_cash
+    total_value = cash+shares*price
+    total_value_label['text'] = f'Total Liquid Value: ${total_value:.2f}'
+    profit = total_value-initial_cash
     if profit == 0:
         profit_label['fg'] = 'black'
     elif profit > 0:
         profit_label['fg'] = 'green'
     else:
         profit_label['fg'] = 'red'
-    profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${abs(profit):.2f}'
+    profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${abs(profit):.2f} ({"-" if profit < 0 else "+"}{abs(profit)/initial_cash*100:.2f}%)'
     #print(f'Cash: {cash:.2f} | Shares: {shares}')
 
     if t == len(close)-window-1:

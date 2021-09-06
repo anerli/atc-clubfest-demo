@@ -1,5 +1,5 @@
 import tkinter as tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import yfinance as yf
@@ -13,7 +13,7 @@ fig = plt.figure()
 
 # Pack fig into root
 canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.get_tk_widget().grid(row=1, column=0, columnspan=2, sticky='snew')#.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+canvas.get_tk_widget().grid(row=2, column=0, columnspan=2, sticky='snew')#.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 # Create new subplot (important to do this after packing)
 ax = fig.add_subplot()
@@ -36,15 +36,18 @@ cash_label.grid(row=0, column=0, sticky='snew')
 shares_label = tk.Label(master=root, font=('Consolas', 48), borderwidth=1, relief="solid")
 shares_label.grid(row=0, column=1, sticky='snew')
 
+last_action_label = tk.Label(master=root, font=('Consolas', 24), borderwidth=1, relief="solid", text='test123')
+last_action_label.grid(row=1, column=0, columnspan=2, sticky='snew')
+
 total_value_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
-total_value_label.grid(row=2, column=0, sticky='snew') # 'snew' == 'ew' in this context
+total_value_label.grid(row=3, column=0, sticky='snew') # 'snew' == 'ew' in this context
 profit_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
-profit_label.grid(row=2, column=1, sticky='snew')
+profit_label.grid(row=3, column=1, sticky='snew')
 
 # Uniform groups: ensure all columns in same group have uniform spacing
 root.grid_columnconfigure(0, weight=1, uniform='group1')
 root.grid_columnconfigure(1, weight=1, uniform='group1')
-root.grid_rowconfigure(1, weight=1)
+root.grid_rowconfigure(2, weight=1)
 
 #cash_label.text
 
@@ -55,13 +58,18 @@ def buy_max(price):
     cash -= max_purchasable*price
     shares += int(max_purchasable)
     #print(f'Selling {shares} shares at ${price} for a total of {price*shares}')
+    if max_purchasable > 0:
+        last_action_label['text'] = f'Last Action: Bought {int(max_purchasable)} shares at ${price:.2f} for a total of ${max_purchasable*shares:.2f}'
 
 def sell_max(price):
     global cash
     global shares
     cash += price*shares
+    if shares > 0:
+        last_action_label['text'] = f'Last Action: Sold {shares} shares at ${price:.2f} for a total of ${price*shares:.2f}'
     shares = 0
     #print(f'Selling {shares} shares at ${price} for a total of {price*shares}')
+    
 
 # Animate function
 def animate(t):
@@ -71,6 +79,7 @@ def animate(t):
     ax.set_ylim(0, y_height+10)
     ax.plot(close[t:current_time])
     ax.plot(sma[t:current_time])
+    ax.legend(['Close Price', f'{sma_window}-Day Moving Average'])
 
     # Algorithm logic
     price = close[current_time]
@@ -99,3 +108,8 @@ anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window),
 
 # Run tkinter loop
 tk.mainloop()
+
+'''
+TODO:
+- Cycle through different stocks
+'''

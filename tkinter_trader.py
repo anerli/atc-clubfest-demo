@@ -35,7 +35,7 @@ shares = 0
 #stats_frame = tk.Frame(master=root, background='green')
 #stats_frame.pack(fill='x')
 
-cash_label = tk.Label(master=root, font=('Consolas', 48), fg='green', borderwidth=1, relief="solid")
+cash_label = tk.Label(master=root, font=('Consolas', 48), borderwidth=1, relief="solid")
 cash_label.grid(row=0, column=0, sticky='snew')
 shares_label = tk.Label(master=root, font=('Consolas', 48), borderwidth=1, relief="solid")
 shares_label.grid(row=0, column=1, sticky='snew')
@@ -46,9 +46,9 @@ shares_label.grid(row=0, column=1, sticky='snew')
 # right_frame = tk.Frame(master=summary_frame, background='red', height=20) 
 # left_frame.grid(row=1, column=1, sticky='snew')
 
-total_value_label = tk.Label(master=root, font=('Consolas', 24), text="TEST", borderwidth=1, relief="solid")
+total_value_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
 total_value_label.grid(row=2, column=0, sticky='snew') # 'snew' == 'ew' in this context
-profit_label = tk.Label(master=root, font=('Consolas', 24), text="TEST2", borderwidth=1, relief="solid")
+profit_label = tk.Label(master=root, font=('Consolas', 36), borderwidth=1, relief="solid")
 profit_label.grid(row=2, column=1, sticky='snew')
 
 # Uniform groups: ensure all columns in same group have uniform spacing
@@ -94,7 +94,14 @@ def animate(t):
     cash_label['text'] = f'Cash: ${cash:.2f}' #({cash/price:.2f} Shares)'
     shares_label['text'] = f'{shares} Shares' #(${shares*price:.2f})'
     total_value_label['text'] = f'Total Liquid Value: ${cash+shares*price:.2f}'
-    profit_label['text'] = f'Total Profit: ${cash+shares*price-initial_cash:.2f}'
+    profit = cash+shares*price-initial_cash
+    if profit == 0:
+        profit_label['fg'] = 'black'
+    elif profit > 0:
+        profit_label['fg'] = 'green'
+    else:
+        profit_label['fg'] = 'red'
+    profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${profit:.2f}'
     print(f'Cash: {cash:.2f} | Shares: {shares}')
 
 

@@ -31,12 +31,38 @@ initial_cash = 10000
 cash = initial_cash
 shares = 0
 
+# Setup text widgets
+cash_label = tk.Label(master=root, font=('Consolas', 48), fg='green')
+cash_label.pack()
+shares_label = tk.Label(master=root, font=('Consolas', 48))
+shares_label.pack()
+
+summary_frame = tk.Frame(master=root, background='green')
+#summary_frame.pack()
+summary_frame.pack(fill='x')
+
+left_frame = tk.Frame(master=summary_frame, background='blue', height=20)
+left_frame.grid(row=1, column=0, sticky='snew')
+right_frame = tk.Frame(master=summary_frame, background='red', height=20) 
+left_frame.grid(row=1, column=1, sticky='snew')
+
+total_value_label = tk.Label(master=summary_frame, font=('Consolas', 24), text="TEST", borderwidth=1, relief="solid")
+total_value_label.grid(row=0, column=0)#, sticky='snew') # 'snew' == 'ew' in this context
+profit_label = tk.Label(master=summary_frame, font=('Consolas', 24), text="TEST2", borderwidth=1, relief="solid")
+profit_label.grid(row=0, column=1, padx=(50,0))#, sticky='snew')
+
+# Uniform groups: ensure all columns in same group have uniform spacing
+summary_frame.grid_columnconfigure(0, weight=1, uniform='group1')
+summary_frame.grid_columnconfigure(1, weight=1, uniform='group1')
+
+#cash_label.text
+
 def buy_max(price):
     global cash
     global shares
     max_purchasable = cash // price
     cash -= max_purchasable*price
-    shares += max_purchasable
+    shares += int(max_purchasable)
     #print(f'Selling {shares} shares at ${price} for a total of {price*shares}')
 
 def sell_max(price):
@@ -63,11 +89,16 @@ def animate(t):
     else:
         sell_max(price)
 
+    # Update UI
+    cash_label['text'] = f'Cash: ${cash:.2f}' #({cash/price:.2f} Shares)'
+    shares_label['text'] = f'{shares} Shares' #(${shares*price:.2f})'
+    total_value_label['text'] = f'Total Liquid Value: ${cash+shares*price:.2f}'
+    profit_label['text'] = f'Total Profit: ${cash+shares*price-initial_cash:.2f}'
     print(f'Cash: {cash:.2f} | Shares: {shares}')
 
 
 # Create animination object
-anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window))
+anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window), repeat=True)
 
 # Run tkinter loop
 tk.mainloop()

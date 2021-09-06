@@ -21,7 +21,7 @@ ax = fig.add_subplot()
 
 # Setup data
 window = 100
-sma_window = 50
+sma_window = 20
 
 sp500 = pd.read_csv('S&P500-Symbols.csv')['Symbol'].to_list()
 
@@ -34,7 +34,7 @@ def reset_data():
     ticker = random.choice(sp500)
     root.title(f'Automated Trader (Trading {ticker})')
 
-    data = yf.download(ticker,'2016-01-01','2021-01-01')
+    data = yf.download(ticker,'2000-01-01','2021-01-01')
     close = data['Adj Close']
     sma = close.rolling(window=50).mean()
     y_height = max(close)
@@ -83,20 +83,22 @@ def sell_max(price):
 
 # Animate function
 def animate(t):
-    print(t)
+    #print(t)
     global close
     global sma
     global y_height
+    global sma_window
 
     #global anim
 
     current_time = t + window
     # Drawing logic
     ax.clear()
-    ax.set_ylim(0, y_height+10)
+    #ax.set_ylim(0, y_height+10)
+    ax.set_ylim(0, max(close[t:current_time])+10)
     ax.plot(close[t:current_time])
     ax.plot(sma[t:current_time])
-    ax.legend(['Close Price', f'{sma_window}-Day Moving Average'])
+    ax.legend([f'{ticker} Close Price', f'{sma_window}-Day Moving Average'])
 
     # Algorithm logic
     price = close[current_time]
@@ -107,7 +109,7 @@ def animate(t):
 
     # Update UI
     cash_label['text'] = f'Cash: ${cash:.2f}'
-    shares_label['text'] = f'{shares} Shares'
+    shares_label['text'] = f'{shares} Shares {ticker}'
     total_value_label['text'] = f'Total Liquid Value: ${cash+shares*price:.2f}'
     profit = cash+shares*price-initial_cash
     if profit == 0:
@@ -117,7 +119,7 @@ def animate(t):
     else:
         profit_label['fg'] = 'red'
     profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${abs(profit):.2f}'
-    print(f'Cash: {cash:.2f} | Shares: {shares}')
+    #print(f'Cash: {cash:.2f} | Shares: {shares}')
 
     if t == len(close)-window-1:
         # We are on the last frame

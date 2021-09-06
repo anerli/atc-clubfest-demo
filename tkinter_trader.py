@@ -2,11 +2,14 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from numpy.lib.npyio import load
 import yfinance as yf
+import pandas as pd
+import random
+import time
 
 # Create tk window root
 root = tk.Tk()
-root.title('Automated Trader')
 
 # Create fig
 fig = plt.figure()
@@ -19,12 +22,30 @@ canvas.get_tk_widget().grid(row=2, column=0, columnspan=2, sticky='snew')#.pack(
 ax = fig.add_subplot()
 
 # Setup data
-data = yf.download('AAPL','2016-01-01','2019-08-01')
-close = data['Adj Close']
 window = 100
 sma_window = 50
-sma = close.rolling(window=50).mean()
-y_height = max(close)
+
+sp500 = pd.read_csv('S&P500-Symbols.csv')['Symbol'].to_list()
+print(sp500)
+
+def reset_data():
+    global close
+    global sma
+    global y_height
+    global ticker
+    
+    ticker = random.choice(sp500)
+    root.title(f'Automated Trader (Trading {ticker})')
+
+    data = yf.download(ticker,'2016-01-01','2021-01-01')
+    close = data['Adj Close']
+    sma = close.rolling(window=50).mean()
+    y_height = max(close)
+
+
+
+#data = yf.download('AAPL','2016-01-01','2019-08-01')
+reset_data()
 
 # Setup algo
 initial_cash = 10000
@@ -59,20 +80,27 @@ def buy_max(price):
     shares += int(max_purchasable)
     #print(f'Selling {shares} shares at ${price} for a total of {price*shares}')
     if max_purchasable > 0:
-        last_action_label['text'] = f'Last Action: Bought {int(max_purchasable)} shares at ${price:.2f} for a total of ${max_purchasable*shares:.2f}'
+        last_action_label['text'] = f'Last Action: Bought {int(max_purchasable)} shares of {ticker} at ${price:.2f} for a total of ${max_purchasable*shares:.2f}'
 
 def sell_max(price):
     global cash
     global shares
     cash += price*shares
     if shares > 0:
-        last_action_label['text'] = f'Last Action: Sold {shares} shares at ${price:.2f} for a total of ${price*shares:.2f}'
+        last_action_label['text'] = f'Last Action: Sold {shares} shares of {ticker} at ${price:.2f} for a total of ${price*shares:.2f}'
     shares = 0
     #print(f'Selling {shares} shares at ${price} for a total of {price*shares}')
-    
+
 
 # Animate function
 def animate(t):
+    print(t)
+    global close
+    global sma
+    global y_height
+
+    #global anim
+
     current_time = t + window
     # Drawing logic
     ax.clear()
@@ -99,15 +127,72 @@ def animate(t):
         profit_label['fg'] = 'green'
     else:
         profit_label['fg'] = 'red'
-    profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${profit:.2f}'
+    profit_label['text'] = f'Total Profit: {"-" if profit < 0 else ""}${abs(profit):.2f}'
     print(f'Cash: {cash:.2f} | Shares: {shares}')
+
+    if t == len(close)-window-1:
+        # We are on the last frame
+        ax.clear()
+        #time.sleep(1)
+        
+        # Reset data, close, sma, y_height
+        #data = yf.download('AAPL','2016-01-01','2016-08-01')
+        reset_data()
+
+        # Jank but seems to work? This is disgusting?
+        #del anim
+        #anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window), repeat=False)
+        
+        # Need a list of 
+        #time.sleep(5)
+
+# def reset_anim():
+#     global loading_widget
+#     global anim
+#     global canvas
+#     global animate
+
+#     loading_widget.grid_forget()
+#     canvas.get_tk_widget().grid(row=2, column=0, columnspan=2, sticky='snew')
+
+#     anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window), repeat=False)
+
+
+# def check_anim():
+#     global anim
+#     global ax
+#     global ticker
+#     global canvas
+#     global loading_widget
+#     if 'anim' in globals():
+#         print('Animation is alive')
+#         root.after(100, check_anim)
+#     else:
+#         print('Animation is deleted')
+#         canvas.get_tk_widget().grid_forget()
+#         loading_widget = tk.Label(text=f'Beggining trading on {ticker}...')
+#         loading_widget.grid(row=2, column=0, columnspan=2, sticky='snew')
+
+#         #time.sleep(5)
+#         root.after(2000, reset_anim)
+#         root.after(2100, check_anim)
+
+        
+#         #ax.text(100, 100, f'Beginning trading on {ticker}...')
+#         #fig.show()
+        
+    
+
 
 
 # Create animination object
 anim = FuncAnimation(fig, animate, interval=50, frames=range(len(close)-window), repeat=True)
 
 # Run tkinter loop
+#check_anim()
 tk.mainloop()
+
+print('tk is async so this runs right?')
 
 '''
 TODO:
